@@ -1,0 +1,11 @@
+@BE_HostAddress = https://localhost:7253
+
+### Đăng ký
+POST {{BE_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "senior_dev",
+  "email": "senior@gmail.com",
+  "password": "Password123!"
+}
