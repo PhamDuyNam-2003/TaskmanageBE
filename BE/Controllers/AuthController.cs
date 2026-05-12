@@ -1,45 +1,96 @@
-﻿using BE.Services.Interfaces;
+﻿using BE.DTOs.Auth;
+using BE.DTOs.Common;
+using BE.Helpers;
+using BE.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using static BE.DTOs.AuthDto;
 
 namespace BE.Controllers
 {
-    
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+
+
+        public AuthController(
+            IAuthService authService)
         {
             _authService = authService;
         }
 
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register(
+            RegisterRequestDto dto)
         {
-            var result = await _authService.RegisterAsync(dto);
-            return result.Success ? Ok(result) : BadRequest(result);
+            var result =
+                await _authService.RegisterAsync(dto);
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+
+                Message = "Đăng ký thành công",
+
+                Data = result
+            });
         }
+
+            [Authorize]
+            [HttpPost("logout")]
+            public async Task<IActionResult> Logout()
+            {
+                var userId = User.GetUserId();
+
+                await _authService.LogoutAsync(userId);
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Logout thành công"
+                });
+            }
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> login(LoginDto dto) 
+        public async Task<IActionResult> Login(
+            LoginRequestDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-            return result.Success ? Ok(result) : Unauthorized(result);
+            var result =
+                await _authService.LoginAsync(dto);
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+
+                Message = "Đăng nhập thành công",
+
+                Data = result
+            });
         }
 
-        [Authorize]
-        [HttpGet("profile")]
-        public IActionResult GetProfile()
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(
+                RefreshTokenRequestDto dto)
         {
-            return Ok(new { message = "Bạn đã truy cập được vào vùng cấm!", user = User.Identity?.Name });
+            var result =
+                await _authService
+                    .RefreshTokenAsync(
+                        dto.RefreshToken);
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+
+                Message = "Refresh token thành công",
+
+                Data = result
+            });
         }
 
     }
+
 }

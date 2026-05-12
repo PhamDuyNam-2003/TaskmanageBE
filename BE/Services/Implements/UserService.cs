@@ -1,37 +1,90 @@
-﻿using BE.Models;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+
+using Microsoft.EntityFrameworkCore;
+
+using BE.Data;
+using BE.DTOs.Users;
+using BE.Models;
 using BE.Services.Interfaces;
-using MongoDB.Driver;
 
 namespace BE.Services.Implements
 {
     public class UserService : IUserService
     {
-        private readonly IMongoCollection<User> _users;
+        private readonly AppDbContext _context;
 
-        public UserService(IMongoDatabase database)
+        private readonly IMapper _mapper;
+
+
+        public UserService(
+            AppDbContext context,
+            IMapper mapper)
         {
-            _users = database.GetCollection<User>("Users");
+            _context = context;
+
+            _mapper = mapper;
         }
 
-        public async Task<User?> GetByIdAsync(string id) =>
-            await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
 
-        public async Task<bool> UpdateFcmTokenAsync(string userId, string token)
+        public async Task<IEnumerable<UserDto>> GetAllAsync()
         {
-            var update = Builders<User>.Update.Set(u => u.FcmToken, token);
-            var result = await _users.UpdateOneAsync(u => u.Id == userId, update);
-            return result.ModifiedCount > 0;
+            return await _context.Users
+                .ProjectTo<UserDto>(
+                    _mapper.ConfigurationProvider)
+                .ToListAsync();
         }
 
-        public async Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
+
+        public async Task<UserDto?> GetByIdAsync(Guid id)
         {
-            var user = await _users.Find(u => u.Id == userId).FirstOrDefaultAsync();
-            if (user == null || !BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash))
+            return await _context.Users
+                .Where(x => x.Id == id)
+                .ProjectTo<UserDto>(
+                    _mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+        }
+
+
+        public async Task<UserDto?> UpdateAsync(
+            Guid id,
+            UpdateUserDto dto)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+
+            user.Username = dto.Username;
+
+            user.FcmToken = dto.FcmToken;
+
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<UserDto>(user);
+        }
+
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (user == null)
+            {
                 return false;
+            }
 
-            var newHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            await _users.UpdateOneAsync(u => u.Id == userId,
-                Builders<User>.Update.Set(u => u.PasswordHash, newHash));
+
+            _context.Users.Remove(user);
+
+            await _context.SaveChangesAsync();
+
             return true;
         }
     }

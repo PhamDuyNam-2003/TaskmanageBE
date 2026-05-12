@@ -1,11 +1,17 @@
-﻿using BE.Models;
+using BE.DTOs.Users;
 
 namespace BE.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<User?> GetByIdAsync(string id);
-        Task<bool> UpdateFcmTokenAsync(string userId, string token);
-        Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword);
+        Task<IEnumerable<UserDto>> GetAllAsync();
+
+        Task<UserDto?> GetByIdAsync(Guid id);
+
+        Task<UserDto?> UpdateAsync(
+            Guid id,
+            UpdateUserDto dto);
+
+        Task<bool> DeleteAsync(Guid id);
     }
 }

@@ -1,33 +1,19 @@
+using BE.Data;
 using BE.Extensions;
-using BE.Models;
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("PostgreConnection")
+    ));
 
-builder.Services.AddControllers();
-
-builder.Services.AddApplication(builder.Configuration);
-builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
+builder.Services
+    .AddApplication(builder.Configuration)
+    .AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-
-app.UseCors("AllowAll");
-
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
+app.UseApplication();
 
 app.Run();

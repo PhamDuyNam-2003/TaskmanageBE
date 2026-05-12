@@ -1,23 +1,51 @@
-﻿using BE.Models;
+using BE.DTOs.Common;
+using BE.DTOs.Tasks;
+using BE.Models.Enums;
 
 namespace BE.Services.Interfaces
 {
     public interface ITaskService
-    { //get đb
-        Task<List<TaskItem>> GetAllTasksAsync(string userId, UserRole role);
-        Task<TaskItem?> GetTaskByIdAsync(string id);
+    {
+        Task<PaginatedResponse<TaskDto>> GetAllAsync(
+            Guid userId,
+            int pageNumber,
+            int pageSize,
+            Guid? projectId = null);
 
-        // CRUD 
-        Task<TaskItem> CreateTaskAsync(TaskItem task);
-        Task<bool> UpdateTaskAsync(string taskId, TaskItem task, string userId, UserRole role);
-        Task<bool> DeleteTaskAsync(string taskId, string userId, UserRole role);
+        Task<TaskDto?> GetByIdAsync(Guid id);
 
-        // chi viec, tham du
-        Task<bool> AssignTaskAsync(string taskId, string assigneeId, string managerId);
-        Task<bool> AddCollaboratorAsync(string taskId, string collaboratorId);
+        Task<TaskDto> CreateAsync(
+            Guid createdById,
+            CreateTaskDto dto);
 
-        // toc do lam va xcmt
-        Task<bool> UpdateStatusAsync(string taskId, WorkStatus status, string userId);
-        Task<bool> AddCommentAsync(string taskId, Comment comment);
+        Task<TaskDto?> UpdateAsync(
+            Guid id,
+            UpdateTaskDto dto);
+
+        Task<bool> DeleteAsync(Guid id);
+
+        Task UpdateStatusAsync(
+            Guid taskId,
+            WorkStatus status);
+
+        Task AddCommentAsync(
+            Guid taskId,
+            Guid userId,
+            string content);
+
+        // SubTask Management
+        Task<IEnumerable<SubTaskDto>> GetSubTasksAsync(Guid taskId);
+
+        Task<SubTaskDto?> GetSubTaskByIdAsync(Guid subTaskId);
+
+        Task<SubTaskDto> CreateSubTaskAsync(
+            Guid taskId,
+            CreateSubTaskDto dto);
+
+        Task<SubTaskDto?> UpdateSubTaskAsync(
+            Guid subTaskId,
+            UpdateSubTaskDto dto);
+
+        Task<bool> DeleteSubTaskAsync(Guid subTaskId);
     }
 }

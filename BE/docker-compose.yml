@@ -1,0 +1,41 @@
+services:
+
+  postgres:
+    image: postgres:16
+
+    container_name: taskmanage_postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: taskmanage_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+  api:
+    build: .
+
+    container_name: taskmanage_api
+
+    restart: always
+
+    depends_on:
+      - postgres
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+
+      ConnectionStrings__PostgreConnection: Host=postgres;Port=5432;Database=taskmanage_db;Username=postgres;Password=123456
+
+volumes:
+  postgres_data:

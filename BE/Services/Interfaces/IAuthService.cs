@@ -1,11 +1,21 @@
-﻿using BE.DTOs;
-using BE.Models;
-using static BE.DTOs.AuthDto;
+using BE.DTOs.Auth;
 
-namespace BE.Services.Interfaces;
-
-public interface IAuthService
+namespace BE.Services.Interfaces
 {
-    Task<AuthResponseDto> RegisterAsync(RegisterDto dto);
-    Task<AuthResponseDto> LoginAsync(LoginDto dto);
+    public interface IAuthService
+    {
+        Task<AuthResponseDto> RegisterAsync(
+            RegisterRequestDto dto);
+
+        Task<AuthResponseDto> RefreshTokenAsync(
+             string refreshToken);
+
+        Task<AuthResponseDto> LoginAsync(
+            LoginRequestDto dto);
+
+        string GenerateAccessToken(Models.User user);
+
+        string GenerateRefreshToken();
+        Task LogoutAsync(Guid userId);
+    }
 }
